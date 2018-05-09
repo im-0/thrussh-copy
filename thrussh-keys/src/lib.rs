@@ -219,7 +219,14 @@ impl PublicKeyBase64 for key::PublicKey {
 
 impl PublicKeyBase64 for key::KeyPair {
     fn public_key_base64(&self) -> String {
-        let name = self.name().as_bytes();
+        let name = match self {
+            // RFC 8332 section 3 says that "ssh-rsa" should be used in public key format regardless of hash function
+            // choice.
+            &key::KeyPair::RSA { .. } => b"ssh-rsa",
+
+            other_type => other_type.name().as_bytes(),
+        };
+
         let mut s = cryptovec::CryptoVec::new();
         s.write_u32::<BigEndian>(name.len() as u32).unwrap();
         s.extend(name);
