@@ -400,6 +400,7 @@ pub fn check_known_hosts(host: &str, port: u16, pubkey: &key::PublicKey) -> Resu
 
 #[cfg(test)]
 mod test {
+    extern crate env_logger;
     extern crate tempdir;
     use std::fs::File;
     use std::io::Write;
@@ -564,7 +565,7 @@ Cog3JMeTrb3LiPHgN6gU2P30MRp6L1j1J/MtlOAr5rux
         decode_secret_key(PKCS8_ENCRYPTED, Some(b"blabla")).unwrap();
     }
 
-    fn test_client_agent(key: &key::Algorithm) {
+    fn test_client_agent(key: &key::KeyPair) {
         env_logger::init().unwrap_or(());
         use std::process::Command;
         let dir = tempdir::TempDir::new("thrussh").unwrap();
@@ -620,8 +621,8 @@ Cog3JMeTrb3LiPHgN6gU2P30MRp6L1j1J/MtlOAr5rux
         let h = core.handle();
         let listener = tokio_uds::UnixListener::bind(&agent_path, &h).unwrap().incoming();
         h.spawn(
-            agent::server::AgentServer::new(listener, core.handle(), ())
-                .map_err(|e| error!("{:?}", e))
+            agent::server::AgentServer::new(listener, core.handle(), agent::server::SimpleAgent::new(true))
+                .map_err(|e| panic!("{:?}", e))
         );
 
         let key = decode_secret_key(PKCS8_ENCRYPTED, Some(b"blabla")).unwrap();
