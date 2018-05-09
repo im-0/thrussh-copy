@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use cryptovec::CryptoVec;
 use futures::{Future, Stream, Poll, Async};
+use futures::future::FutureResult;
+use futures::future::ok;
 use tokio_core::reactor::Handle;
 use tokio_io::io::{read_exact, ReadExact, flush, Flush, write_all, WriteAll};
 use tokio_io::{AsyncRead, AsyncWrite};
@@ -36,6 +38,43 @@ pub trait Agent: Clone {
     #[allow(unused_variables)]
     fn confirm(&self, pk: &key::KeyPair) -> Self::F {
         From::from(false)
+    }
+}
+
+/// Simple agent that either confirms or refuses all signing requests.
+#[derive(Clone)]
+pub struct SimpleAgent {
+    confirm_all: bool,
+}
+
+impl SimpleAgent {
+    pub fn new(confirm_all: bool) -> Self {
+        SimpleAgent { confirm_all }
+    }
+}
+
+pub struct SimpleAgentFuture(FutureResult<bool, Error>);
+
+impl From<bool> for SimpleAgentFuture {
+    fn from(b: bool) -> Self {
+        SimpleAgentFuture(ok(b))
+    }
+}
+
+impl Future for SimpleAgentFuture {
+    type Item = bool;
+    type Error = Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        self.0.poll()
+    }
+}
+
+impl Agent for SimpleAgent {
+    type F = SimpleAgentFuture;
+
+    fn confirm(&self, _pk: &key::KeyPair) -> Self::F {
+        From::from(self.confirm_all)
     }
 }
 
