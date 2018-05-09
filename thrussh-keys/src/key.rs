@@ -306,6 +306,15 @@ impl KeyPair {
         }
     }
 
+    /// Generate a key pair (RSA).
+    pub fn generate_rsa(bits: u32, hash: SignatureHash) -> Result<Self, Error> {
+        let key = openssl::rsa::Rsa::generate(bits)?;
+        Ok(KeyPair::RSA {
+            key,
+            hash,
+        })
+    }
+
     /// Sign a slice using this algorithm.
     pub fn sign_detached(&self, to_sign: &[u8]) -> Result<Signature, Error> {
         match self {
