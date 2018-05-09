@@ -106,7 +106,7 @@ extern crate tokio_uds;
 extern crate serde_derive;
 extern crate serde;
 
-use base64::{decode_config, encode_config, MIME};
+use base64::{decode_config, encode_config, MIME, STANDARD};
 use std::path::Path;
 use std::borrow::Cow;
 use std::fs::{File, OpenOptions};
@@ -242,7 +242,7 @@ impl PublicKeyBase64 for key::KeyPair {
                 s.extend_ssh_mpint(&key.n().to_vec());
             }
         }
-        encode_config(&s, MIME)
+        encode_config(&s, STANDARD)
     }
 }
 
