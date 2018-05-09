@@ -1,0 +1,8 @@
+[workspace]
+
+members = [ "thrussh-keys", "thrussh", "thrussh-libsodium", "thrussh-agent" ]
+
+[replace]
+
+"thrussh-keys:0.9.5" = { path = "thrussh-keys" }
+"thrussh-libsodium:0.1.2" = { path = "thrussh-libsodium" }
