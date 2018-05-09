@@ -577,7 +577,10 @@ Cog3JMeTrb3LiPHgN6gU2P30MRp6L1j1J/MtlOAr5rux
             .spawn()
             .expect("failed to execute process");
 
-        std::thread::sleep(std::time::Duration::from_millis(10));
+        while !agent_path.exists() {
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+
         let mut core = tokio_core::reactor::Core::new().unwrap();
         let public = key.clone_public_key();
         let h = core.handle();
