@@ -59,7 +59,10 @@
 //!
 //!   let h = core.handle();
 //!   let listener = tokio_uds::UnixListener::bind(&agent_path, &h).unwrap().incoming();
-//!   h.spawn(agent::server::AgentServer::new(listener, core.handle(), ()).map_err(|e| eprintln!("{:?}", e)));
+//!   h.spawn(agent::server::AgentServer::new(
+//!       listener,
+//!       core.handle(),
+//!       agent::server::SimpleAgent::new(true)).map_err(|e| eprintln!("{:?}", e)));
 //!
 //!   let key = thrussh_keys::decode_secret_key(pkcs8_encrypted, Some(b"blabla")).unwrap();
 //!   let public = key.clone_public_key();
@@ -160,7 +163,7 @@ const KEYTYPE_ED25519: &'static [u8] = b"ssh-ed25519";
 
 /// Load a public key from a file. Ed25519 and RSA keys are supported.
 ///
-/// ```
+/// ```no_run
 /// thrussh_keys::load_public_key("/home/pe/.ssh/id_ed25519.pub").unwrap();
 /// ```
 pub fn load_public_key<P:AsRef<Path>>(path: P) -> Result<key::PublicKey> {
