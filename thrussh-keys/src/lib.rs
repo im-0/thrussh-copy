@@ -648,4 +648,35 @@ Cog3JMeTrb3LiPHgN6gU2P30MRp6L1j1J/MtlOAr5rux
         ).unwrap();
     }
 
+    #[test]
+    fn test_generate_rsa() {
+        let key = key::KeyPair::generate_rsa(1024, key::SignatureHash::SHA2_512).unwrap();
+
+        let dir = tempdir::TempDir::new("thrussh").unwrap();
+        let id_rsa_path = dir.path().join("id_rsa");
+        let mut tmp_priv_key = std::fs::File::create(&id_rsa_path).unwrap();
+        encode_pkcs8_pem(&key, &mut tmp_priv_key).unwrap();
+        tmp_priv_key.flush().unwrap();
+
+        std::process::Command::new("chmod")
+            .arg("0600")
+            .arg(&id_rsa_path)
+            .spawn()
+            .expect("Failed to execute \"chmod\"")
+            .wait()
+            .expect("Failed to wait on \"chmod\"");
+
+        let ssh_keygen_out = std::process::Command::new("ssh-keygen")
+            .arg("-y")
+            .arg("-f")
+            .arg(id_rsa_path)
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("Failed to execute \"ssh-keygen\"")
+            .wait_with_output()
+            .expect("Failed to wait on \"ssh-keygen\"")
+            .stdout;
+        let ssh_keygen_out = String::from_utf8_lossy(&ssh_keygen_out).trim().to_owned();
+        assert_eq!(key.public_key_base64(), ssh_keygen_out.split(' ').collect::<Vec<&str>>()[1]);
+    }
 }
